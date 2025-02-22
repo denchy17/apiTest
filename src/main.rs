@@ -342,13 +342,20 @@ async fn process_pair_handler(mut pair: Pair) -> Result<impl warp::Reply, warp::
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    // Create a Warp filter for a POST endpoint at "/process"
     let process_route = warp::post()
         .and(warp::path("process"))
         .and(warp::body::json())
         .and_then(process_pair_handler);
 
-    println!("Server starting on http://127.0.0.1:3030");
-    warp::serve(process_route).run(([127, 0, 0, 1], 3030)).await;
+    // Fetch the port from the environment variable (default to 3030 if not set)
+    let port: u16 = std::env::var("PORT")
+        .unwrap_or_else(|_| "3030".to_string())
+        .parse()
+        .expect("PORT must be a valid u16 number");
+
+    let addr = ([0, 0, 0, 0], port);
+
+    println!("🚀 Server starting on http://0.0.0.0:{}", port);
+    warp::serve(process_route).run(addr).await;
     Ok(())
 }
